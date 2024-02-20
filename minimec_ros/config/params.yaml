@@ -1,0 +1,5 @@
+/**:
+  ros__parameters:
+    r: 0.0508    # The radius of the wheels
+    w: 0.1545
+    l: 0.1545
