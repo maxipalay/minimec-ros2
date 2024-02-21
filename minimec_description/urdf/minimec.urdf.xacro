@@ -1,0 +1,130 @@
+<?xml version="1.0" ?>
+<robot name="minimec"
+  xmlns:xacro="http://ros.org/wiki/xacro">
+  
+  <!-- load parameters from yaml file -->
+  <xacro:property name="yaml_file" value="$(find minimec_description)/config/params.yaml"/>
+  <xacro:property name="props" value="${xacro.load_yaml(yaml_file)['/**']['ros__parameters']}"/>
+
+  <link name="base_footprint"/>
+
+  <joint name="base_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0.0 0.0 ${props['wheel_radius']}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="base_link">
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://minimec_description/meshes/minimec-chassis.stl" scale="1.0 1.0 1.0"/>
+      </geometry>
+      <material name=""/>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0.057856" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.42735 0.25455 0.187463"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="wheel_front_left_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_front_left_link"/>
+    <origin xyz="${props['wheelbase']/2} ${props['track_width']/2} 0.0" rpy="-1.57 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <link name="wheel_front_left_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://minimec_description/meshes/minimec-wheel-fl-rr.stl" scale="1.0 1.0 1.0"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder length="0.03857" radius="${props['wheel_radius']}"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="wheel_front_right_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_front_right_link"/>
+    <origin xyz="${props['wheelbase']/2} ${-props['track_width']/2} 0.0" rpy="1.57 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <link name="wheel_front_right_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://minimec_description/meshes/minimec-wheel-fr-rl.stl" scale="1.0 1.0 1.0"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder length="0.03857" radius="${props['wheel_radius']}"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="wheel_rear_right_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_rear_right_link"/>
+    <origin xyz="${-props['wheelbase']/2} ${-props['track_width']/2} 0.0" rpy="1.57 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <link name="wheel_rear_right_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://minimec_description/meshes/minimec-wheel-fl-rr.stl" scale="1.0 1.0 1.0"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder length="0.03857" radius="${props['wheel_radius']}"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="wheel_rear_left_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_rear_left_link"/>
+    <origin xyz="${-props['wheelbase']/2} ${props['track_width']/2} 0.0" rpy="-1.57 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <link name="wheel_rear_left_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://minimec_description/meshes/minimec-wheel-fr-rl.stl" scale="1.0 1.0 1.0"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder length="0.03857" radius="${props['wheel_radius']}"/>
+      </geometry>
+    </collision>
+  </link>
+
+  
+
+  
+
+</robot>

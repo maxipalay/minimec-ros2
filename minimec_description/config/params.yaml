@@ -1,0 +1,6 @@
+/**:
+  ros__parameters:
+    wheel_radius: 0.0508    # The radius of the wheels
+    track_width: 0.309     # The distance between the wheels (side to side)
+    wheelbase: 0.309     # horizontal distance between center of front and rear wheels
+    collision_radius: -1
