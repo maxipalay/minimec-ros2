@@ -14,9 +14,11 @@ find_package(rclcpp REQUIRED)
 find_package(minimeclib REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(odrive_can REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 add_executable(velocity_parser src/velocity_parser.cpp)
-ament_target_dependencies(velocity_parser rclcpp geometry_msgs odrive_can)
+ament_target_dependencies(velocity_parser rclcpp geometry_msgs odrive_can sensor_msgs)
 target_link_libraries(velocity_parser minimeclib::minimeclib)
 
 install(TARGETS

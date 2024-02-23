@@ -16,6 +16,7 @@
   <depend>minimeclib</depend>
   <depend>geomtry_msgs</depend>
   <depend>odrive_can</depend>
+  <depend>tf2</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

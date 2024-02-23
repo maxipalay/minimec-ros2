@@ -7,7 +7,9 @@
 #include "geometry_msgs/msg/twist.hpp"
 #include "odrive_can/msg/control_message.hpp"
 #include "odrive_can/srv/axis_state.hpp"
+#include "odrive_can/msg/controller_status.hpp"
 #include "minimeclib/kinematics.hpp"
+#include "sensor_msgs/msg/joint_state.hpp"
 
 using namespace std::chrono_literals;
 
@@ -42,6 +44,19 @@ public:
     pub_fr_ = create_publisher<odrive_can::msg::ControlMessage>("odrive_axis0/control_message", 10);
     pub_rr_ = create_publisher<odrive_can::msg::ControlMessage>("odrive_axis2/control_message", 10);
     pub_rl_ = create_publisher<odrive_can::msg::ControlMessage>("odrive_axis1/control_message", 10);
+
+    sub_fl_ = create_subscription<odrive_can::msg::ControllerStatus>(
+      "odrive_axis3/controller_status", 10,
+      std::bind(&VelocityParser::controllerCallbackFL, this, std::placeholders::_1));
+    sub_fr_ = create_subscription<odrive_can::msg::ControllerStatus>(
+      "odrive_axis0/controller_status", 10,
+      std::bind(&VelocityParser::controllerCallbackFR, this, std::placeholders::_1));
+    sub_rr_ = create_subscription<odrive_can::msg::ControllerStatus>(
+      "odrive_axis2/controller_status", 10,
+      std::bind(&VelocityParser::controllerCallbackRR, this, std::placeholders::_1));
+    sub_rl_ = create_subscription<odrive_can::msg::ControllerStatus>(
+      "odrive_axis1/controller_status", 10,
+      std::bind(&VelocityParser::controllerCallbackRL, this, std::placeholders::_1));
 
     // create service clients
     client_fl_ = create_client<odrive_can::srv::AxisState>("odrive_axis3/request_axis_state");
@@ -89,6 +104,9 @@ public:
     timer_ = create_wall_timer(
       timer_step, std::bind(&VelocityParser::timerCallback, this));
 
+    //
+    pub_joint_states_ = create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
+
   }
 
 private:
@@ -121,6 +139,16 @@ private:
       // rear left
       msg.input_vel = -wheel_speeds.rl;
       pub_rl_->publish(msg);
+
+      // publish joint states
+      sensor_msgs::msg::JointState joint_msg;
+
+      joint_msg.header.stamp = get_clock()->now();
+      joint_msg.name = std::vector<std::string>({"wheel_front_left_joint", "wheel_front_right_joint", "wheel_rear_right_joint", "wheel_rear_left_joint"});
+
+      joint_msg.position = std::vector<double>({pos_fl, pos_fr, pos_rr, pos_rl});
+
+      pub_joint_states_->publish(joint_msg);
     }
   }
 
@@ -149,6 +177,26 @@ private:
     wheel_speeds = mecanum_drive.IKin(msg.angular.z, msg.linear.x, msg.linear.y);
   }
 
+  void controllerCallbackFL(const odrive_can::msg::ControllerStatus & msg)
+  {
+    pos_fl = msg.pos_estimate * 3.14159265358979323846;
+  }
+
+  void controllerCallbackFR(const odrive_can::msg::ControllerStatus & msg)
+  {
+    pos_fr = msg.pos_estimate * 3.14159265358979323846;
+  }
+
+  void controllerCallbackRR(const odrive_can::msg::ControllerStatus & msg)
+  {
+    pos_rr = msg.pos_estimate * 3.14159265358979323846;
+  }
+
+  void controllerCallbackRL(const odrive_can::msg::ControllerStatus & msg)
+  {
+    pos_rl = msg.pos_estimate * 3.14159265358979323846;
+  }
+
   minimeclib::WheelSpeeds wheel_speeds;
 
   double r;
@@ -156,12 +204,20 @@ private:
   double l;
   int odrives_enabled{0};
 
+  double pos_fl{}, pos_fr{}, pos_rr{}, pos_rl{};
+
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_cmd_vel_;
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr pub_joint_states_;
 
   rclcpp::Publisher<odrive_can::msg::ControlMessage>::SharedPtr pub_fl_;
   rclcpp::Publisher<odrive_can::msg::ControlMessage>::SharedPtr pub_fr_;
   rclcpp::Publisher<odrive_can::msg::ControlMessage>::SharedPtr pub_rr_;
   rclcpp::Publisher<odrive_can::msg::ControlMessage>::SharedPtr pub_rl_;
+
+  rclcpp::Subscription<odrive_can::msg::ControllerStatus>::SharedPtr sub_fl_;
+  rclcpp::Subscription<odrive_can::msg::ControllerStatus>::SharedPtr sub_fr_;
+  rclcpp::Subscription<odrive_can::msg::ControllerStatus>::SharedPtr sub_rr_;
+  rclcpp::Subscription<odrive_can::msg::ControllerStatus>::SharedPtr sub_rl_;
 
   rclcpp::Client<odrive_can::srv::AxisState>::SharedPtr client_fl_;
   rclcpp::Client<odrive_can::srv::AxisState>::SharedPtr client_fr_;
