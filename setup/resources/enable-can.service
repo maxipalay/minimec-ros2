@@ -1,0 +1,8 @@
+[Unit]
+After=network.target
+
+[Service]
+ExecStart=/home/msr/setup/resources/enable-can.sh
+
+[Install]
+WantedBy=default.target
