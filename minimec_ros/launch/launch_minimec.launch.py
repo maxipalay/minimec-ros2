@@ -33,4 +33,11 @@ def generate_launch_description():
                             [FindPackageShare("minimec_ros"), LaunchConfiguration('robot_params')])),
                         ],
             ),
+        Node(
+            package='minimec_ros',
+            executable='odometry',
+            parameters=[ParameterFile(PathJoinSubstitution(
+                            [FindPackageShare("minimec_ros"), LaunchConfiguration('robot_params')])),
+                        ],
+            ),
     ])
