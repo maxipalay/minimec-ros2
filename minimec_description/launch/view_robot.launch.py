@@ -13,7 +13,7 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_jsp',
-            default_value='true',
+            default_value='false',
             description="controls whether the joint_state_publisher is used\
                   to publish default joint states.",
             choices=["true", "false"]),
