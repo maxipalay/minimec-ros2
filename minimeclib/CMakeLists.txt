@@ -12,6 +12,7 @@ project(minimeclib)
 # provided are package specific.  Usually there is then a CMAKE variable
 # That is defined to reference the library
 find_package(Doxygen)
+find_package(tf2 REQUIRED)
 
 include(CTest)
 
@@ -50,7 +51,7 @@ endif()
 # name is the name of the library without the extension or lib prefix
 # name creates a cmake "target"
 add_library(minimeclib src/kinematics.cpp)
-
+target_link_libraries(minimeclib tf2::tf2)
 # Use target_include_directories so that #include"mylibrary/header.hpp" works
 # The use of the <BUILD_INTERFACE> and <INSTALL_INTERFACE> is because when
 # Using the library from the build directory or after installation
