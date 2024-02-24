@@ -146,7 +146,7 @@ private:
       joint_msg.header.stamp = get_clock()->now();
       joint_msg.name = std::vector<std::string>({"wheel_front_left_joint", "wheel_front_right_joint", "wheel_rear_right_joint", "wheel_rear_left_joint"});
 
-      joint_msg.position = std::vector<double>({pos_fl, pos_fr, pos_rr, pos_rl});
+      joint_msg.position = std::vector<double>({-pos_fl, -pos_fr, -pos_rr, -pos_rl});
 
       pub_joint_states_->publish(joint_msg);
     }
@@ -174,27 +174,33 @@ private:
 
   void cmdVelCallback(const geometry_msgs::msg::Twist & msg)
   {
-    wheel_speeds = mecanum_drive.IKin(msg.angular.z, msg.linear.x, msg.linear.y);
+    auto wheel_speeds_rads = mecanum_drive.IKin(msg.angular.z, msg.linear.x, msg.linear.y); // we receive these in rad/s
+    wheel_speeds = minimeclib::WheelSpeeds{
+        wheel_speeds_rads.fl/2.0/3.14159265358979323846,
+        wheel_speeds_rads.fr/2.0/3.14159265358979323846,
+        wheel_speeds_rads.rr/2.0/3.14159265358979323846,
+        wheel_speeds_rads.rl/2.0/3.14159265358979323846
+        };
   }
 
   void controllerCallbackFL(const odrive_can::msg::ControllerStatus & msg)
   {
-    pos_fl = msg.pos_estimate * 3.14159265358979323846;
+    pos_fl = msg.pos_estimate * 2.0 * 3.14159265358979323846;
   }
 
   void controllerCallbackFR(const odrive_can::msg::ControllerStatus & msg)
   {
-    pos_fr = msg.pos_estimate * 3.14159265358979323846;
+    pos_fr = msg.pos_estimate * 2.0 * 3.14159265358979323846;
   }
 
   void controllerCallbackRR(const odrive_can::msg::ControllerStatus & msg)
   {
-    pos_rr = msg.pos_estimate * 3.14159265358979323846;
+    pos_rr = msg.pos_estimate * 2.0 * 3.14159265358979323846;
   }
 
   void controllerCallbackRL(const odrive_can::msg::ControllerStatus & msg)
   {
-    pos_rl = msg.pos_estimate * 3.14159265358979323846;
+    pos_rl = msg.pos_estimate * 2.0 * 3.14159265358979323846;
   }
 
   minimeclib::WheelSpeeds wheel_speeds;
