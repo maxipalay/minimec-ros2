@@ -21,4 +21,6 @@ sudo apt upgrade -y
 
 sudo apt install ros-iron-ros-base -y
 
+sudo apt install ros-iron-xacro -y
+
 echo "source /opt/ros/iron/setup.bash" > /home/msr/.bashrc
