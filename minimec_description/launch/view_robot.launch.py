@@ -18,6 +18,12 @@ def generate_launch_description():
                   to publish default joint states.",
             choices=["true", "false"]),
         DeclareLaunchArgument(
+            'use_rsp',
+            default_value='false',
+            description="controls whether the robot_state_publisher is used\
+                  to publish a robot description.",
+            choices=["true", "false"]),
+        DeclareLaunchArgument(
             'use_rviz',
             default_value='true',
             description="controls whether rviz is launched.",
@@ -27,6 +33,8 @@ def generate_launch_description():
             value='basic_config.rviz'
             ),
         Node(
+            condition=IfCondition(PythonExpression(
+                ['\'', LaunchConfiguration('use_rsp'), '\'', '== \'true\''])),
             package='robot_state_publisher',
             executable='robot_state_publisher',
             parameters=[
