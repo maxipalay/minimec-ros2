@@ -1,0 +1,18 @@
+/**:
+  ros__parameters:
+    fl_joint_name: "wheel_front_left_joint"
+    fr_joint_name: "wheel_front_right_joint"
+    rr_joint_name: "wheel_rear_right_joint"
+    rl_joint_name: "wheel_rear_left_joint"
+    fl_feedback_topic: "odrive_axis3/controller_status"
+    fr_feedback_topic: "odrive_axis0/controller_status"
+    rr_feedback_topic: "odrive_axis2/controller_status"
+    rl_feedback_topic: "odrive_axis1/controller_status"
+    fl_control_topic: "odrive_axis3/control_message"
+    fr_control_topic: "odrive_axis0/control_message"
+    rr_control_topic: "odrive_axis2/control_message"
+    rl_control_topic: "odrive_axis1/control_message"
+    fl_control_service: "odrive_axis3/request_axis_state"
+    fr_control_service: "odrive_axis0/request_axis_state"
+    rr_control_service: "odrive_axis2/request_axis_state"
+    rl_control_service: "odrive_axis1/request_axis_state"

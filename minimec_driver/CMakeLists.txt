@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(minimec_ros)
+project(minimec_driver)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -7,36 +7,26 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(Doxygen)
 find_package(rclcpp REQUIRED)
 find_package(minimeclib REQUIRED)
-find_package(geometry_msgs REQUIRED)
 find_package(odrive_can REQUIRED)
-find_package(tf2 REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(nav_msgs REQUIRED)
-find_package(tf2_ros REQUIRED)
-find_package(tf2_geometry_msgs REQUIRED)
+find_package(minimec_msgs REQUIRED)
+find_package(tf2 REQUIRED)
 
-add_executable(velocity_parser src/velocity_parser.cpp)
-ament_target_dependencies(velocity_parser rclcpp geometry_msgs odrive_can sensor_msgs)
-target_link_libraries(velocity_parser minimeclib::minimeclib)
-
-add_executable(odometry src/odometry.cpp)
-ament_target_dependencies(odometry rclcpp geometry_msgs odrive_can sensor_msgs tf2 tf2_ros nav_msgs tf2_geometry_msgs)
-target_link_libraries(odometry minimeclib::minimeclib)
+add_executable(minimec_driver src/minimec_driver.cpp)
+ament_target_dependencies(minimec_driver rclcpp odrive_can sensor_msgs minimec_msgs)
+target_link_libraries(minimec_driver minimeclib::minimeclib)
 
 install(TARGETS
-  velocity_parser
-  odometry
+  minimec_driver
   DESTINATION lib/${PROJECT_NAME})
 
 # Install launch files.
 install(DIRECTORY
-  launch
-  DESTINATION share/${PROJECT_NAME}/
+launch
+DESTINATION share/${PROJECT_NAME}/
 )
 
 # Install config files.
@@ -55,6 +45,22 @@ if(BUILD_TESTING)
   # a copyright and license is added to all source files
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
+endif()
+
+# Building documentation should be optional.
+# To build documentation pass -DBUILD_DOCS=ON when generating the build system
+option(BUILD_DOCS "Build the documentation" OFF)
+
+# build just because Doxygen is missing
+if(${DOXYGEN_FOUND} AND ${BUILD_DOCS})
+    # Turn the README.md into the homepage of the doxygen docs
+    set(DOXYGEN_USE_MDFILE_AS_MAINPAGE README.md)
+
+    # Tell Doxygen where to find the documentation
+    doxygen_add_docs(doxygen include/ src/ README.md ALL)
+
+    # The documentation will be in the build/html directory
+    # The main page is build/html/index.html
 endif()
 
 ament_package()

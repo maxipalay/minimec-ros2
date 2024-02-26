@@ -1,3 +1,20 @@
+/// @file
+/// @brief Odometry implementation
+///
+/// PARAMETERS:
+///     w (double): track wheel [meters]
+///     r (double): wheel radius [meters]
+///     l (double): wheel base [meters]
+///     rate (double): loop frequency [hertz]
+///     body_id (string): name of the body frame
+///     odom_id (string): name of the odom frame
+/// PUBLISHES:
+///     ~/odom (nav_msgs::msg::Odometry): output odometry
+/// SUBSCRIBES:
+///     ~/joint_states (sensor_msgs::msg::JointState): robot joint's state
+/// BROADCASTS:
+///     odom_id -> body_id (geometry_msgs::msg::TransformStamped)
+
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -109,15 +126,12 @@ private:
       tf2::getEulerYPR(prev_transform_rotation, prev_yaw, prev_pitch, prev_roll);
 
       odom_msg.twist.twist.angular.z = (new_yaw - prev_yaw) / (dt);
-      
-      //pub_odom_->publish(odom_msg);
 
       odom_transform.header.stamp = time_now;
       odom_transform.transform.translation.x = new_transform.getOrigin().x();
       odom_transform.transform.translation.y = new_transform.getOrigin().y();
       odom_transform.transform.rotation = tf2::toMsg(new_transform.getRotation().normalized());
       
-      //tf_broadcaster_->sendTransform(odom_transform);
       prev_transform = new_transform;
     } else {
       first_joints_cb = false;
