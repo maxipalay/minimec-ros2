@@ -1,5 +1,5 @@
 /**:
   ros__parameters:
     r: 0.0508    # The radius of the wheels [meters]
-    w: 0.1545    # Track width [meters]
+    w: 0.1545    # Track width / 2 [meters]
     l: 0.1545    # wheelbase / 2 [meters]
