@@ -23,4 +23,6 @@ sudo apt install ros-iron-ros-base -y
 
 sudo apt install ros-iron-xacro -y
 
+sudo apt install libarmadillo-dev -y
+
 echo "source /opt/ros/iron/setup.bash" > /home/msr/.bashrc
