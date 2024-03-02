@@ -17,6 +17,9 @@ find_package(nav_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(minimec_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(Armadillo REQUIRED)
+
+include_directories(${ARMADILLO_INCLUDE_DIRS})
 
 add_executable(kinematics src/kinematics.cpp)
 ament_target_dependencies(kinematics rclcpp geometry_msgs minimec_msgs)
@@ -26,9 +29,14 @@ add_executable(odometry src/odometry.cpp)
 ament_target_dependencies(odometry rclcpp geometry_msgs sensor_msgs tf2 tf2_ros nav_msgs tf2_geometry_msgs)
 target_link_libraries(odometry minimeclib::minimeclib)
 
+add_executable(commands src/commands.cpp)
+ament_target_dependencies(commands rclcpp geometry_msgs sensor_msgs tf2 tf2_ros nav_msgs tf2_geometry_msgs)
+target_link_libraries(commands ${ARMADILLO_LIBRARIES})
+
 install(TARGETS
   kinematics
   odometry
+  commands
   DESTINATION lib/${PROJECT_NAME})
 
 # Install launch files.
