@@ -25,4 +25,12 @@ sudo apt install ros-iron-xacro -y
 
 sudo apt install libarmadillo-dev -y
 
+sudo apt install python3-pip -y
+
+sudo apt install python3-rpi.gpio -y # install gpio for raspberry pi
+
+sudo pip3 install rpi_ws281x adafruit-circuitpython-neopixel # install libraries necessary to control neopixels
+
+sudo usermod -aG gpio,spi msr # add the user to gpio, spi group so we can control neopixels from pin D10
+
 echo "source /opt/ros/iron/setup.bash" > /home/msr/.bashrc
