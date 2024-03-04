@@ -40,64 +40,87 @@ public:
     timer_ = create_wall_timer(
       timer_step, std::bind(&Commands::timerCallback, this));
 
-    traj = nav_msgs::msg::Path();
+    // 
+    auto qos_ = rclcpp::SystemDefaultsQoS{};
+    qos_.reliable();
+
+    sub_path_ = create_subscription<nav_msgs::msg::Path>(
+      "plan", qos_,
+      std::bind(&Commands::planCallback, this, std::placeholders::_1));
+
+    
   }
 
 private:
+
+    void planCallback(const nav_msgs::msg::Path & msg)
+{   
+    traj = msg;
+    received_path = true;
+
+}
   void timerCallback()
   {
-    if (counter == 0) {
-      auto initial_transform = tf2::Transform();
-      auto final_transform = tf2::Transform();
-      final_transform.setOrigin(tf2::Vector3(2.0, 0.0, 0.0));
-      auto final_rot = tf2::Quaternion();
-      final_rot.setRPY(0.0, 0.0, 3.14159);
-      final_transform.setRotation(final_rot);
-      int steps = 1000;
+    // if (counter == 0) {
+    // //   auto initial_transform = tf2::Transform();
+    // //   auto final_transform = tf2::Transform();
+    // //   final_transform.setOrigin(tf2::Vector3(2.0, 0.0, 0.0));
+    // //   auto final_rot = tf2::Quaternion();
+    // //   final_rot.setRPY(0.0, 0.0, 3.14159);
+    // //   final_transform.setRotation(final_rot);
+    // //   int steps = 1000;
 
-      double initial_yaw, initial_pitch, initial_roll;
-      tf2::getEulerYPR(
-        initial_transform.getRotation().normalized(), initial_yaw, initial_pitch, initial_roll);
+    // //   double initial_yaw, initial_pitch, initial_roll;
+    // //   tf2::getEulerYPR(
+    // //     initial_transform.getRotation().normalized(), initial_yaw, initial_pitch, initial_roll);
 
-      double final_yaw, final_pitch, final_roll;
-      tf2::getEulerYPR(
-        final_transform.getRotation().normalized(), final_yaw, final_pitch, final_roll);
+    // //   double final_yaw, final_pitch, final_roll;
+    // //   tf2::getEulerYPR(
+    // //     final_transform.getRotation().normalized(), final_yaw, final_pitch, final_roll);
 
-      auto yaw_diff = final_yaw - initial_yaw;
-      auto yaw_increment = yaw_diff / static_cast<double>(steps);
+    // //   auto yaw_diff = final_yaw - initial_yaw;
+    // //   auto yaw_increment = yaw_diff / static_cast<double>(steps);
 
-      auto x_diff = final_transform.getOrigin().getX() - initial_transform.getOrigin().getX();
-      auto x_increment = x_diff / static_cast<double>(steps);
-      for (int i = 0; i < steps; i++) {
-        auto pose = tf2::Transform();
-        auto rot = tf2::Quaternion();
-        rot.setRPY(0.0, 0.0, yaw_increment * static_cast<double>(i));
-        pose.setOrigin(tf2::Vector3(x_increment * static_cast<double>(i), 0.0, 0.0));
-        pose.setRotation(rot);
-        auto msg_tf = geometry_msgs::msg::Transform();
-        tf2::toMsg(pose, msg_tf);
-        auto msg_pose = geometry_msgs::msg::PoseStamped();
-        msg_pose.pose.position.x = msg_tf.translation.x;
-        msg_pose.pose.position.y = msg_tf.translation.y;
-        msg_pose.pose.position.z = msg_tf.translation.z;
-        msg_pose.pose.orientation = msg_tf.rotation;
+    // //   auto x_diff = final_transform.getOrigin().getX() - initial_transform.getOrigin().getX();
+    // //   auto x_increment = x_diff / static_cast<double>(steps);
+    // //   for (int i = 0; i < steps; i++) {
+    // //     auto pose = tf2::Transform();
+    // //     auto rot = tf2::Quaternion();
+    // //     rot.setRPY(0.0, 0.0, yaw_increment * static_cast<double>(i));
+    // //     pose.setOrigin(tf2::Vector3(x_increment * static_cast<double>(i), 0.0, 0.0));
+    // //     pose.setRotation(rot);
+    // //     auto msg_tf = geometry_msgs::msg::Transform();
+    // //     tf2::toMsg(pose, msg_tf);
+    // //     auto msg_pose = geometry_msgs::msg::PoseStamped();
+    // //     msg_pose.pose.position.x = msg_tf.translation.x;
+    // //     msg_pose.pose.position.y = msg_tf.translation.y;
+    // //     msg_pose.pose.position.z = msg_tf.translation.z;
+    // //     msg_pose.pose.orientation = msg_tf.rotation;
 
-        traj.poses.insert(
-          traj.poses.end(),
-          msg_pose);
+    // //     traj.poses.insert(
+    // //       traj.poses.end(),
+    // //       msg_pose);
 
-      }
-    }
+    // //   }
 
-    if (counter < 999) {
+    // }
+
+    if (received_path && counter < traj.poses.size()-1) {
 
       // current configuration
       auto current_config = tf2::Transform();   // transform odom->body
       tf2::fromMsg(odom_msg.pose.pose, current_config);
 
+      RCLCPP_INFO_STREAM(
+        get_logger(), "curr config - x: " << odom_msg.pose.pose.position.x << " y: " << odom_msg.pose.pose.position.y << std::endl);
+
       // reference configuration
       auto reference_config = tf2::Transform();
       tf2::fromMsg(traj.poses.at(counter).pose, reference_config);
+
+
+      RCLCPP_INFO_STREAM(
+        get_logger(), "ref config - x: " << traj.poses.at(counter).pose.position.x << " y: " << traj.poses.at(counter).pose.position.y << std::endl);
 
       // next configuration
       auto next_config = tf2::Transform();
@@ -133,9 +156,6 @@ private:
       //     get_logger(), "rotation: " << rot_mat << std::endl);
 
       arma::vec trans_vec = {trans[0], trans[1], trans[2]};
-
-      RCLCPP_ERROR_STREAM(
-        get_logger(), "aaaaa: " << trans_vec << std::endl);
 
       // calculate log3
 
@@ -286,7 +306,7 @@ private:
       // finish logarithm
 
       arma::Col<double> v_d = {log(2, 1), log(0, 2), log(1, 0), log(0, 3), log(1, 3), log(2, 3)};
-      v_d *= 50.0;
+      //v_d *= 4.0;
 
       // calculate ff term
       tf_diff = current_config.inverse() * reference_config;
@@ -315,7 +335,7 @@ private:
         {dot(2, 0), dot(2, 1), dot(2, 2), rot_mat(2, 0), rot_mat(2, 1), rot_mat(2, 2)}
       };
 
-      arma::vec ff_term = adj * v_d + x_err * 1.0;
+      arma::vec ff_term = adj * v_d + x_err * 2.0;
 
       // double twist_z_world = ff_term[2];
       // double twist_x_world = ff_term[3];
@@ -371,7 +391,7 @@ private:
     odom_msg = msg;
   }
 
-  int counter = 0;
+  size_t counter = 0;
 
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_cmd_vel_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr sub_odom_;
@@ -381,6 +401,10 @@ private:
   rclcpp::TimerBase::SharedPtr timer_;
 
   nav_msgs::msg::Path traj;
+
+  bool received_path = false;
+
+  rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr sub_path_;
 
 };
 

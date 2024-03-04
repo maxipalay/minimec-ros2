@@ -24,10 +24,10 @@ public:
 
     path_service_ =
       create_service<minimec_msgs::srv::PlanRequest>(
-      "~/generate_plan",
+      "generate_plan",
       std::bind(&PathGenerator::planCallback, this, std::placeholders::_1, std::placeholders::_2));
 
-    path_publisher_ = create_publisher<nav_msgs::msg::Path>("path", qos_);
+    path_publisher_ = create_publisher<nav_msgs::msg::Path>("plan", qos_);
 
     markers_publisher_ = create_publisher<visualization_msgs::msg::MarkerArray>("points", qos_);
 
@@ -40,9 +40,7 @@ private:
     std::shared_ptr<minimec_msgs::srv::PlanRequest::Response> response){
         // get frame_id from the message
         std::string frame_id = request->frame_id;
-
-        // number of reference points along the path to be generated
-        size_t num_steps = 100;
+        double resolution = request->resolution;
         
         // our generated path
         nav_msgs::msg::Path generated_path = nav_msgs::msg::Path();
@@ -56,7 +54,7 @@ private:
         tinyspline::BSpline spline(request->points.size(), 2, 4); // dimension = 2, degree = 4
 
         // create the control points vector
-        std::vector<tinyspline::real> ctrlp = spline.controlPoints();
+        std::vector<tsReal> ctrlp = spline.controlPoints();
 
         // create marker array, the received points will be published here
         auto marker_arr = visualization_msgs::msg::MarkerArray();
@@ -90,12 +88,29 @@ private:
         spline.setControlPoints(ctrlp);
         
         // get the domain min and max values // for our use case they're always [0,1]
-        // tinyspline::real domain_min = spline.domain().min();
-        tinyspline::real domain_max = spline.domain().max();
-        
+        // tsReal domain_min = spline.domain().min();
+        tsReal domain_max = spline.domain().max();
+
+        // approximate spline distance (rough estimate)
+        tsReal distance = 0.0;
+        // we split the line into 100 segments and calculate the 
+        // euclidean distance between each pair of points
+        for (size_t i = 1; i < 100; i++){
+            std::vector<tsReal> result1 = spline.eval(static_cast<double>(i-1)/static_cast<double>(100-1)*static_cast<double>(domain_max)).result();
+            std::vector<tsReal> result2 = spline.eval(static_cast<double>(i)/static_cast<double>(100-1)*static_cast<double>(domain_max)).result();
+            tinyspline::Vec2 vec1 = tinyspline::Vec2(result1.at(0), result1.at(1));
+            tinyspline::Vec2 vec2 = tinyspline::Vec2(result2.at(0), result2.at(1));
+            distance += vec1.distance(vec2);
+        }
+
+        auto steps = static_cast<size_t>(distance/resolution);
+
+        // get the indices of equally spaced points in the spline
+        tinyspline::std_real_vector_out res = spline.equidistantKnotSeq(steps);
+
         // add points along the generated spline to the path
-        for (size_t i = 0; i < num_steps; i++){
-            std::vector<tinyspline::real> result = spline.eval(static_cast<double>(i)/static_cast<double>(num_steps-1)*static_cast<double>(domain_max)).result();
+        for (size_t i = 0; i < steps; i++){
+            std::vector<tsReal> result = spline.eval(res.at(i)).result();
             auto pose = geometry_msgs::msg::PoseStamped();
             pose.pose.position.x = static_cast<double>(result.at(0));
             pose.pose.position.y = static_cast<double>(result.at(1));
