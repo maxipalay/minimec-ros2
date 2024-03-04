@@ -1,0 +1,4 @@
+geometry_msgs/Point[] points
+string frame_id
+---
+nav_msgs/Path path 
