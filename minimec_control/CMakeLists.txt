@@ -5,7 +5,14 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-set(CMAKE_PREFIX_PATH "/usr/local/lib64/cmake/tinysplinecxx")
+option(BUILD_ROBOT "Build for running on the robot." ON)
+
+if (!BUILD_ROBOT)
+    set(CMAKE_PREFIX_PATH "/usr/local/lib64/cmake/tinysplinecxx")
+    find_package(tinysplinecxx REQUIRED)
+endif()
+
+
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
@@ -20,7 +27,6 @@ find_package(tf2_ros REQUIRED)
 find_package(minimec_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(Armadillo REQUIRED)
-find_package(tinysplinecxx REQUIRED)
 find_package(visualization_msgs REQUIRED)
 
 include_directories(${ARMADILLO_INCLUDE_DIRS})
@@ -37,16 +43,23 @@ add_executable(commands src/commands.cpp)
 ament_target_dependencies(commands rclcpp geometry_msgs sensor_msgs tf2 tf2_ros nav_msgs tf2_geometry_msgs)
 target_link_libraries(commands ${ARMADILLO_LIBRARIES})
 
-add_Executable(path_generator src/path_generator.cpp)
-ament_target_dependencies(path_generator rclcpp minimec_msgs visualization_msgs)
-target_link_libraries(path_generator ${TINYSPLINECXX_LIBRARIES})
+if (!BUILD_ROBOT)
+    add_executable(path_generator src/path_generator.cpp)
+    ament_target_dependencies(path_generator rclcpp minimec_msgs visualization_msgs)
+    target_link_libraries(path_generator ${TINYSPLINECXX_LIBRARIES})
+endif()
 
 install(TARGETS
   kinematics
   odometry
   commands
+  DESTINATION lib/${PROJECT_NAME})
+
+if (!BUILD_ROBOT)
+  install(TARGETS
   path_generator
   DESTINATION lib/${PROJECT_NAME})
+endif()
 
 # Install launch files.
 install(DIRECTORY
