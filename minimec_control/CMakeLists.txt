@@ -7,7 +7,7 @@ endif()
 
 option(BUILD_ROBOT "Build for running on the robot." ON)
 
-if (!BUILD_ROBOT)
+if (NOT BUILD_ROBOT)
     set(CMAKE_PREFIX_PATH "/usr/local/lib64/cmake/tinysplinecxx")
     find_package(tinysplinecxx REQUIRED)
 endif()
@@ -43,9 +43,9 @@ add_executable(trajectory_tracking src/trajectory_tracking.cpp)
 ament_target_dependencies(trajectory_tracking rclcpp geometry_msgs sensor_msgs tf2 tf2_ros nav_msgs tf2_geometry_msgs)
 target_link_libraries(trajectory_tracking ${ARMADILLO_LIBRARIES})
 
-if (!BUILD_ROBOT)
+if (NOT BUILD_ROBOT)
     add_executable(path_generator src/path_generator.cpp)
-    ament_target_dependencies(path_generator rclcpp minimec_msgs visualization_msgs)
+    ament_target_dependencies(path_generator rclcpp minimec_msgs visualization_msgs tf2)
     target_link_libraries(path_generator ${TINYSPLINECXX_LIBRARIES})
 endif()
 
@@ -55,7 +55,7 @@ install(TARGETS
   trajectory_tracking
   DESTINATION lib/${PROJECT_NAME})
 
-if (!BUILD_ROBOT)
+if (NOT BUILD_ROBOT)
   install(TARGETS
   path_generator
   DESTINATION lib/${PROJECT_NAME})
