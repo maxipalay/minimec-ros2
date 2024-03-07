@@ -15,11 +15,11 @@
 
 using namespace std::chrono_literals;
 
-class Commands : public rclcpp::Node
+class TrajectoryTracker : public rclcpp::Node
 {
 public:
-  Commands()
-  : Node("commands")
+  TrajectoryTracker()
+  : Node("trajectory_tracker")
   {
     // parameters declaration
     declare_parameter("rate", 50.0);
@@ -34,11 +34,11 @@ public:
     sub_odom_ =
       create_subscription<nav_msgs::msg::Odometry>(
       "odom", 10,
-      std::bind(&Commands::odomCallback, this, std::placeholders::_1));
+      std::bind(&TrajectoryTracker::odomCallback, this, std::placeholders::_1));
 
     // create main loop timer
     timer_ = create_wall_timer(
-      timer_step, std::bind(&Commands::timerCallback, this));
+      timer_step, std::bind(&TrajectoryTracker::timerCallback, this));
 
     // 
     auto qos_ = rclcpp::SystemDefaultsQoS{};
@@ -46,7 +46,7 @@ public:
 
     sub_path_ = create_subscription<nav_msgs::msg::Path>(
       "plan", qos_,
-      std::bind(&Commands::planCallback, this, std::placeholders::_1));
+      std::bind(&TrajectoryTracker::planCallback, this, std::placeholders::_1));
 
     
   }
@@ -411,7 +411,7 @@ private:
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<Commands>());
+  rclcpp::spin(std::make_shared<TrajectoryTracker>());
   rclcpp::shutdown();
   return 0;
 }

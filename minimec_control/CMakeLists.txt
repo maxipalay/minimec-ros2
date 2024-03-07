@@ -39,9 +39,9 @@ add_executable(odometry src/odometry.cpp)
 ament_target_dependencies(odometry rclcpp geometry_msgs sensor_msgs tf2 tf2_ros nav_msgs tf2_geometry_msgs)
 target_link_libraries(odometry minimeclib::minimeclib)
 
-add_executable(commands src/commands.cpp)
-ament_target_dependencies(commands rclcpp geometry_msgs sensor_msgs tf2 tf2_ros nav_msgs tf2_geometry_msgs)
-target_link_libraries(commands ${ARMADILLO_LIBRARIES})
+add_executable(trajectory_tracking src/trajectory_tracking.cpp)
+ament_target_dependencies(trajectory_tracking rclcpp geometry_msgs sensor_msgs tf2 tf2_ros nav_msgs tf2_geometry_msgs)
+target_link_libraries(trajectory_tracking ${ARMADILLO_LIBRARIES})
 
 if (!BUILD_ROBOT)
     add_executable(path_generator src/path_generator.cpp)
@@ -52,7 +52,7 @@ endif()
 install(TARGETS
   kinematics
   odometry
-  commands
+  trajectory_tracking
   DESTINATION lib/${PROJECT_NAME})
 
 if (!BUILD_ROBOT)
