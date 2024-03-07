@@ -26,7 +26,7 @@ endif()
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/WheelCommands.msg"
-  "srv/PlanRequest.srv"
+  "srv/SplinePlanRequest.srv"
   DEPENDENCIES builtin_interfaces nav_msgs geometry_msgs
 )
 

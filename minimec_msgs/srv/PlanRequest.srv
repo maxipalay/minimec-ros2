@@ -1,7 +1,0 @@
-geometry_msgs/Point[] points
-string frame_id
-string heading # 'fixed': keep orientation specified by the heading_angle param. 'auto': robot faces forward.
-float32 heading_angle # radians
-float32 resolution # approximate resolution for the generated path (distance between the points)
----
-nav_msgs/Path path

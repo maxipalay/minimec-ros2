@@ -4,7 +4,7 @@
 #include <string>
 
 #include "rclcpp/rclcpp.hpp"
-#include "minimec_msgs/srv/plan_request.hpp"
+#include "minimec_msgs/srv/splne_plan_request.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav_msgs/msg/path.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
@@ -23,8 +23,8 @@ public:
     qos_.reliable();
 
     path_service_ =
-      create_service<minimec_msgs::srv::PlanRequest>(
-      "generate_plan",
+      create_service<minimec_msgs::srv::SplinePlanRequest>(
+      "generate_spline_plan",
       std::bind(&PathGenerator::planCallback, this, std::placeholders::_1, std::placeholders::_2));
 
     path_publisher_ = create_publisher<nav_msgs::msg::Path>("plan", qos_);
@@ -36,8 +36,8 @@ public:
 
 private:
 
-    void planCallback(const std::shared_ptr<minimec_msgs::srv::PlanRequest::Request> request,
-    std::shared_ptr<minimec_msgs::srv::PlanRequest::Response> response){
+    void planCallback(const std::shared_ptr<minimec_msgs::srv::SplinePlanRequest::Request> request,
+    std::shared_ptr<minimec_msgs::srv::SplinePlanRequest::Response> response){
         // get frame_id from the message
         std::string frame_id = request->frame_id;
         double resolution = request->resolution;
@@ -60,6 +60,7 @@ private:
         auto marker_arr = visualization_msgs::msg::MarkerArray();
         
         // copy the points into array, create markers to publish them
+        int n_markers = 0;
         for (size_t i = 0; i < request->points.size(); i++){
             ctrlp[2*i] = static_cast<tsReal>(request->points.at(i).x);
             ctrlp[2*i+1] = static_cast<tsReal>(request->points.at(i).y);
@@ -72,6 +73,26 @@ private:
             marker.action = visualization_msgs::msg::Marker::ADD;
             marker.pose.position.x = request->points.at(i).x;
             marker.pose.position.y = request->points.at(i).y;
+            marker.scale.x = 0.05;
+            marker.scale.y = 0.05;
+            marker.scale.z = 0.05;
+            marker.color.r = 1.0;
+            marker.color.a = 1.0;
+            marker_arr.markers.insert(
+                marker_arr.markers.end(),
+                marker);
+            n_markers++;
+        }
+        
+        if (msg->heading_mode == "point"){
+            visualization_msgs::msg::Marker marker;
+            marker.header.frame_id = frame_id;
+            marker.header.stamp = get_clock()->now();
+            marker.id = i;
+            marker.type = visualization_msgs::msg::Marker::SPHERE;
+            marker.action = visualization_msgs::msg::Marker::ADD;
+            marker.pose.position.x = request->heading_point.x;
+            marker.pose.position.y = request->heading_point.y;
             marker.scale.x = 0.05;
             marker.scale.y = 0.05;
             marker.scale.z = 0.05;
@@ -114,6 +135,19 @@ private:
             auto pose = geometry_msgs::msg::PoseStamped();
             pose.pose.position.x = static_cast<double>(result.at(0));
             pose.pose.position.y = static_cast<double>(result.at(1));
+            auto rot = tf2::Quaternion();
+            if (msg->heading_mode == "fixed"){
+                rot.setRPY(0.0, 0.0, msg->heading_angle);
+            } else if (msg->heading_mode == "point") {
+                // get the angle from our current position to the point
+                auto angle = std::atan2(msg->heading_point.y-pose.pose.position.y, msg->heading_point.x-pose.pose.position.x);
+                rot.setRPY(0.0, 0.0, angle);
+            }
+            pose.pose.orientation.x = rot.getX();
+            pose.pose.orientation.y = rot.getY();
+            pose.pose.orientation.z = rot.getZ();
+            pose.pose.orientation.w = rot.getW();
+
             generated_path.poses.insert(
                 generated_path.poses.end(),
                 pose);
@@ -126,7 +160,7 @@ private:
         response->path = generated_path;
     }
     
-    rclcpp::Service<minimec_msgs::srv::PlanRequest>::SharedPtr path_service_;
+    rclcpp::Service<minimec_msgs::srv::SplinePlanRequest>::SharedPtr path_service_;
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_publisher_;
     rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr markers_publisher_;
   
