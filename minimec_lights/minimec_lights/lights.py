@@ -40,32 +40,42 @@ class Lights(Node):
 
         self.pixels = neopixel.NeoPixel(board.D10, self.num_pixels, auto_write=False)
         
-        self.timer_control = self.create_timer(0.01, self.cb_timer)
+        self.timer_control = self.create_timer(0.02, self.cb_timer)
         self.startup = True
 
         self.j = 0
         self.i = 0
 
         self.mode = 0
+
+        self.chase_index = 0
     
     def cb_timer(self,):
         if self.mode == 0:
             self.rainbow_cycle()  # rainbow cycle with 1ms delay per step
+        elif self.mode == 1:
+            self.chase(True)
+        elif self.mode == 2:
+            self.chase(False)
 
     def cmd_vel_cb(self, msg):
         self.get_logger().error("received cmd_vel message")
-        if msg.linear.x == 0.0 and msg.linear.y == 0.0:
+        if msg.linear.x == 0.0 and msg.linear.y == 0.0 and msg.angular.z == 0.0:
             self.mode = 0
+        elif msg.linear.x == 0.0 and msg.linear.y == 0.0 and msg.angular.z > 0.0:
+            self.mode = 1
+        elif msg.linear.x == 0.0 and msg.linear.y == 0.0 and msg.angular.z < 0.0:
+            self.mode = 2
         else:
             self.pixels.fill((0,0,0))
-            self.mode = 1
+            self.mode = 3
             orientation = math.atan2(msg.linear.y, msg.linear.x)
             direction_index = self.angle_to_index(orientation)
-            self.pixels[direction_index] = (255,0,0)
+            self.pixels[direction_index] = (255,255,255)
             self.get_logger().error(f"direction index: {direction_index}")
             for i in range(1,25):
-                self.pixels[(direction_index+i)%141] = (int(255.0*(1.0-float(i)/24.0)),255,255)
-                self.pixels[(direction_index-i)%141] = (int(255.0*(1.0-float(i)/24.0)),255,255)
+                self.pixels[(direction_index+i)%(self.num_pixels-1)] = (int(255.0*(1.0-float(i)/24.0)),255,255)
+                self.pixels[(direction_index-i)%(self.num_pixels-1)] = (int(255.0*(1.0-float(i)/24.0)),255,255)
             self.pixels.show()
 
         return
@@ -82,6 +92,22 @@ class Lights(Node):
             self.i = 0
         return
     
+    def chase(self, dir):
+        index = self.chase_index
+        self.pixels.fill((0,0,0))
+        self.pixels[index] = (255,255,255)
+        for i in range(1,25):
+            self.pixels[(index+i)%(self.num_pixels-1)] = (int(255.0*(1.0-float(i)/24.0)),255,255)
+            self.pixels[(index-i)%(self.num_pixels-1)] = (int(255.0*(1.0-float(i)/24.0)),255,255)
+        self.pixels.show()
+        if dir:
+            self.chase_index -= 1
+            if self.chase_index < 0:
+                self.chase_index += self.num_pixels
+        else:
+            self.chase_index += 1
+            self.chase_index = self.chase_index % (self.num_pixels - 1)
+
     def angle_to_index(self, angle):
         # take the angle to 0,2pi
         angle = angle + math.pi
