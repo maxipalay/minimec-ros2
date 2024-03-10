@@ -61,11 +61,11 @@ private:
         for (int i = 0; i < steps; i++){
             auto pose = geometry_msgs::msg::PoseStamped();
 
-            pose.pose.position.x = c_x + r*std::cos(static_cast<double>(i)/steps*2.0*3.14159-3.14159/2.0);//-3.14159/2.0
-            pose.pose.position.y = c_y + r*std::sin(static_cast<double>(i)/steps*2.0*3.14159-3.14159/2.0);
+            pose.pose.position.x = c_x - r*std::cos(static_cast<double>(i)/steps*2.0*3.14159);//-3.14159/2.0
+            pose.pose.position.y = c_y - r*std::sin(static_cast<double>(i)/steps*2.0*3.14159);
             auto rot = tf2::Quaternion();
             // get the angle from our current position to the point
-            auto angle = std::atan2(pose.pose.position.y-c_y, pose.pose.position.x-c_x);
+            auto angle = std::atan2(c_y - pose.pose.position.y, c_x - pose.pose.position.x);
             rot.setRPY(0.0, 0.0, angle);
             pose.pose.orientation.x = rot.getX();
             pose.pose.orientation.y = rot.getY();
