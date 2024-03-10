@@ -35,6 +35,10 @@ def generate_launch_description():
             launch_arguments=[['cmd_src', LaunchConfiguration('cmd_src')]]
         ),
         Node(
+            package='minimec_lights',
+            executable='lights'
+        ),
+        Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
             parameters=[
