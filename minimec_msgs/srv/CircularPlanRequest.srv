@@ -1,0 +1,6 @@
+string frame_id
+geometry_msgs/Point center
+float32 radius
+float32 resolution  # resolution (radians)
+---
+nav_msgs/Path path

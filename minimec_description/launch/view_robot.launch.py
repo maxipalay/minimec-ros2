@@ -2,7 +2,6 @@ import launch
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions.declare_launch_argument import DeclareLaunchArgument
-from launch.actions.set_launch_configuration import SetLaunchConfiguration
 from launch.conditions import IfCondition
 from launch_ros.substitutions import ExecutableInPackage, FindPackageShare
 from launch.substitutions import Command, PathJoinSubstitution, LaunchConfiguration,\
@@ -28,9 +27,10 @@ def generate_launch_description():
             default_value='true',
             description="controls whether rviz is launched.",
             choices=["true", "false"]),
-        SetLaunchConfiguration(
+        DeclareLaunchArgument(
             'rviz_config',
-            value='basic_config.rviz'
+            default_value='basic_config.rviz',
+            description='selects the rviz configuration file loaded.'
             ),
         Node(
             condition=IfCondition(PythonExpression(

@@ -1,0 +1,8 @@
+geometry_msgs/Point[] points        # array of points
+string frame_id                     # the frame in which the points are expressed
+string heading_mode                      # 'fixed': keep orientation specified by the heading_angle param. 'point': robot faces towards point.
+geometry_msgs/Point heading_point   # the reference point where to head in the coord frame frame_id
+float32 heading_angle               # radians, to use with heading = 'fixed'     
+float32 resolution                  # approximate resolution for the generated path (distance between the points) (spline)
+---
+nav_msgs/Path path
