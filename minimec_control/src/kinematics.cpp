@@ -7,9 +7,9 @@
 ///     l (double): wheel base [meters]
 ///     rate (double): loop frequency [hertz]
 /// PUBLISHES:
-///     ~/wheel_cmd (minimec_msgs::msg::WheelCommands): output wheel commands [rad/s]
+///     /wheel_cmd (minimec_msgs::msg::WheelCommands): output wheel commands [rad/s]
 /// SUBSCRIBES:
-///     ~/cmd_vel (geometry_msgs::msg::Twist): input desired twist
+///     /cmd_vel (geometry_msgs::msg::Twist): input desired twist
 
 #include <chrono>
 #include <functional>

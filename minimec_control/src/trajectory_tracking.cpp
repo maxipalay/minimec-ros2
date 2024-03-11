@@ -1,3 +1,14 @@
+/// @file
+/// @brief Track a reference trajectory
+///
+/// PARAMETERS:
+///     rate (double): control loop rate (Hz)
+/// PUBLISHERS:
+///     /cmd_vel (geometry_msgs::msg::Twist): output velocity commands
+/// SUBSCRIBERS:
+///     /odom (sensor_msgs::msg::JointState): robot joint's state
+///     /plan (nav_msgs::msg::Path): input reference trajectory
+
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -31,6 +42,7 @@ public:
     // create publishers and subscribers
     pub_cmd_vel_ = create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
 
+    // subscriber to odometry (feedback)
     sub_odom_ =
       create_subscription<nav_msgs::msg::Odometry>(
       "odom", 10,
@@ -40,94 +52,41 @@ public:
     timer_ = create_wall_timer(
       timer_step, std::bind(&TrajectoryTracker::timerCallback, this));
 
-    // 
+    // qos for path
     auto qos_ = rclcpp::SystemDefaultsQoS{};
     qos_.reliable();
 
+    // path subscriber
     sub_path_ = create_subscription<nav_msgs::msg::Path>(
       "plan", qos_,
       std::bind(&TrajectoryTracker::planCallback, this, std::placeholders::_1));
 
-    
+
   }
 
 private:
-
-    void planCallback(const nav_msgs::msg::Path & msg)
-{   
+  void planCallback(const nav_msgs::msg::Path & msg)
+  {
     traj = msg;
     received_path = true;
 
-}
+  }
   void timerCallback()
   {
-    // if (counter == 0) {
-    // //   auto initial_transform = tf2::Transform();
-    // //   auto final_transform = tf2::Transform();
-    // //   final_transform.setOrigin(tf2::Vector3(2.0, 0.0, 0.0));
-    // //   auto final_rot = tf2::Quaternion();
-    // //   final_rot.setRPY(0.0, 0.0, 3.14159);
-    // //   final_transform.setRotation(final_rot);
-    // //   int steps = 1000;
 
-    // //   double initial_yaw, initial_pitch, initial_roll;
-    // //   tf2::getEulerYPR(
-    // //     initial_transform.getRotation().normalized(), initial_yaw, initial_pitch, initial_roll);
-
-    // //   double final_yaw, final_pitch, final_roll;
-    // //   tf2::getEulerYPR(
-    // //     final_transform.getRotation().normalized(), final_yaw, final_pitch, final_roll);
-
-    // //   auto yaw_diff = final_yaw - initial_yaw;
-    // //   auto yaw_increment = yaw_diff / static_cast<double>(steps);
-
-    // //   auto x_diff = final_transform.getOrigin().getX() - initial_transform.getOrigin().getX();
-    // //   auto x_increment = x_diff / static_cast<double>(steps);
-    // //   for (int i = 0; i < steps; i++) {
-    // //     auto pose = tf2::Transform();
-    // //     auto rot = tf2::Quaternion();
-    // //     rot.setRPY(0.0, 0.0, yaw_increment * static_cast<double>(i));
-    // //     pose.setOrigin(tf2::Vector3(x_increment * static_cast<double>(i), 0.0, 0.0));
-    // //     pose.setRotation(rot);
-    // //     auto msg_tf = geometry_msgs::msg::Transform();
-    // //     tf2::toMsg(pose, msg_tf);
-    // //     auto msg_pose = geometry_msgs::msg::PoseStamped();
-    // //     msg_pose.pose.position.x = msg_tf.translation.x;
-    // //     msg_pose.pose.position.y = msg_tf.translation.y;
-    // //     msg_pose.pose.position.z = msg_tf.translation.z;
-    // //     msg_pose.pose.orientation = msg_tf.rotation;
-
-    // //     traj.poses.insert(
-    // //       traj.poses.end(),
-    // //       msg_pose);
-
-    // //   }
-
-    // }
-
-    if (received_path && counter < traj.poses.size()-1) {
+    if (received_path && counter < traj.poses.size() - 1) {
 
       // current configuration
-      auto current_config = tf2::Transform();   // transform odom->body
+      auto current_config = tf2::Transform();
       tf2::fromMsg(odom_msg.pose.pose, current_config);
-
-      RCLCPP_INFO_STREAM(
-        get_logger(), "curr config - x: " << odom_msg.pose.pose.position.x << " y: " << odom_msg.pose.pose.position.y << std::endl);
 
       // reference configuration
       auto reference_config = tf2::Transform();
       tf2::fromMsg(traj.poses.at(counter).pose, reference_config);
 
-
-      RCLCPP_INFO_STREAM(
-        get_logger(), "ref config - x: " << traj.poses.at(counter).pose.position.x << " y: " << traj.poses.at(counter).pose.position.y << std::endl);
-
-      // next configuration
+      // next reference configuration
       auto next_config = tf2::Transform();
       tf2::fromMsg(traj.poses.at(counter + 1).pose, next_config);
-
-      // RCLCPP_ERROR_STREAM(
-      //     get_logger(), "reference_config: " << next_config.getBasis().getRow(0).getY() << std::endl);
 
       // feedback control law
       // get the rotation matrix of the transform
@@ -151,9 +110,6 @@ private:
       arma::mat log{};
 
       arma::Mat<double> rot_mat = tf_diff_mat.submat(0, 0, 2, 2);
-
-      // RCLCPP_ERROR_STREAM(
-      //     get_logger(), "rotation: " << rot_mat << std::endl);
 
       arma::vec trans_vec = {trans[0], trans[1], trans[2]};
 
@@ -187,15 +143,6 @@ private:
         log3 = theta / 2.0 / std::sin(theta) * ( (rot_mat - rot_mat.t()));
       }
 
-
-      // RCLCPP_ERROR_STREAM(
-      //     get_logger(), "rotation: " << rot_mat << std::endl);
-
-      //arma::mat log3 = arma::real(arma::logmat(rot_mat));
-      // RCLCPP_ERROR_STREAM(
-      //     get_logger(), "reference_config yaw: " << log3 << std::endl);
-
-
       if (log3.is_zero(0.01)) {
         log = {{0.0, 0.0, 0.0, tf_diff_mat(0, 3)},
           {0.0, 0.0, 0.0, tf_diff_mat(1, 3)},
@@ -216,13 +163,10 @@ private:
           {0.0, 0.0, 0.0, 0.0}};
       }
 
-
       // finish logarithm
 
       arma::Col<double> x_err = {log(2, 1), log(0, 2), log(1, 0), log(0, 3), log(1, 3), log(2, 3)};
 
-
-      // AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
       // get the transform that takes us from our desired position to the next desired position
       tf_diff = reference_config.inverse() * next_config;
 
@@ -246,10 +190,7 @@ private:
 
       trans_vec = {trans[0], trans[1], trans[2]};
 
-      //log3 = arma::real(arma::logmat(rot_mat));
-// calculate log3
-
-      // arma::mat log3;
+      // calculate log3
 
       acosinput = (arma::trace(rot_mat) - 1.0) / 2.0;
       if (acosinput >= 1.0) {
@@ -277,11 +218,6 @@ private:
         log3 = theta / 2.0 / std::sin(theta) * ( (rot_mat - rot_mat.t()));
       }
 
-
-      // RCLCPP_ERROR_STREAM(
-      //     get_logger(), "reference_config yaw: " << log3 << std::endl);
-
-
       if (log3.is_zero(0.0000000000001)) {
         log = {{0.0, 0.0, 0.0, tf_diff_mat(0, 3)},
           {0.0, 0.0, 0.0, tf_diff_mat(1, 3)},
@@ -306,7 +242,6 @@ private:
       // finish logarithm
 
       arma::Col<double> v_d = {log(2, 1), log(0, 2), log(1, 0), log(0, 3), log(1, 3), log(2, 3)};
-      //v_d *= 4.0;
 
       // calculate ff term
       tf_diff = current_config.inverse() * reference_config;
@@ -336,51 +271,18 @@ private:
       };
 
       arma::vec ff_term = adj * v_d;
-      
+
       arma::vec p_term = x_err * 2.0;
 
-      if (arma::norm(int_x_err + x_err*1.0/50.0) < 0.01){
-        int_x_err = int_x_err + x_err*1.0/50.0;
+      if (arma::norm(int_x_err + x_err * 1.0 / 50.0) < 0.01) {
+        int_x_err = int_x_err + x_err * 1.0 / 50.0;
       }
-      
+
       arma::vec i_term = int_x_err * 1.0;
 
       arma::vec control_output = ff_term + p_term + i_term;
-      // double twist_z_world = ff_term[2];
-      // double twist_x_world = ff_term[3];
-      // double twist_y_world = ff_term[4];
-
-
-      // RCLCPP_ERROR_STREAM(
-      //     get_logger(), "ffterm: " << ff_term << std::endl);
-
-
-      // // calculate rotation matrix elements from odometry
-
-      // auto transform = current_config.inverse(); // transform body->odom;
-
-      // double yaw, pitch, roll;
-      // tf2::getEulerYPR(transform.getRotation().normalized(), yaw, pitch, roll);
-      // // now we have the yaw in radians, its the only rotation we have (around the z axis)
-
-      // RCLCPP_ERROR_STREAM(
-      //     get_logger(), "yaw: " << yaw << std::endl);
-
-      // auto r11 = std::cos(yaw);
-      // auto r12 = -std::sin(yaw);
-      // auto r21 = std::sin(yaw);
-      // auto r22 = std::cos(yaw);
-      // auto r33 = 1.0;
-
-      // // calculate body twist
-      // auto twist_omega_body = r33 * twist_z_world;
-      // auto twist_x_body = r33 * transform.getOrigin().y() * twist_z_world + r11 * twist_x_world + r12 * twist_y_world;
-      // auto twist_y_body = -r33 * transform.getOrigin().x() * twist_z_world + r21 * twist_x_world + r22 * twist_y_world;
 
       auto cmd_vel = geometry_msgs::msg::Twist();
-      // cmd_vel.angular.z = twist_omega_body;
-      // cmd_vel.linear.x = twist_x_body;
-      // cmd_vel.linear.y = twist_y_body;
 
       cmd_vel.angular.z = control_output[2];
       cmd_vel.linear.x = control_output[3];
@@ -404,17 +306,11 @@ private:
 
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_cmd_vel_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr sub_odom_;
-
   nav_msgs::msg::Odometry odom_msg;
-
   rclcpp::TimerBase::SharedPtr timer_;
-
   nav_msgs::msg::Path traj;
-
   arma::vec int_x_err = arma::vec(6, arma::fill::zeros);
-
   bool received_path = false;
-
   rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr sub_path_;
 
 };

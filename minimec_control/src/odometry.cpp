@@ -8,10 +8,10 @@
 ///     rate (double): loop frequency [hertz]
 ///     body_id (string): name of the body frame
 ///     odom_id (string): name of the odom frame
-/// PUBLISHES:
-///     ~/odom (nav_msgs::msg::Odometry): output odometry
-/// SUBSCRIBES:
-///     ~/joint_states (sensor_msgs::msg::JointState): robot joint's state
+/// PUBLISHERS:
+///     /odom (nav_msgs::msg::Odometry): output odometry
+/// SUBSCRIBERS:
+///     /joint_states (sensor_msgs::msg::JointState): robot joint's state
 /// BROADCASTS:
 ///     odom_id -> body_id (geometry_msgs::msg::TransformStamped)
 
@@ -63,7 +63,7 @@ public:
     // initialize odom data
     odom_msg.header.frame_id = odom_id;
     odom_msg.child_frame_id = body_id;
-    
+
     odom_transform.header.frame_id = odom_id;
     odom_transform.child_frame_id = body_id;
 
@@ -98,27 +98,31 @@ private:
     auto time_now = get_clock()->now();
     // we should be using the names provided
     // to find out the indices of those in the vector
-    
+
     if (!first_joints_cb) {
 
-      auto relative_transform = mecanum_drive.FKin(minimeclib::WheelPositions{msg.position.at(0), -msg.position.at(1), -msg.position.at(2), msg.position.at(3)});
+      auto relative_transform = mecanum_drive.FKin(
+        minimeclib::WheelPositions{msg.position.at(
+            0), -msg.position.at(1), -msg.position.at(2), msg.position.at(3)});
       auto new_transform = prev_transform * relative_transform;
 
       auto dt = (time_now - time_last_joint_data).seconds();
       odom_msg.header.stamp = time_now;
       odom_msg.pose.pose.position.x = new_transform.getOrigin().x();
       odom_msg.pose.pose.position.y = new_transform.getOrigin().y();
-      
+
       odom_msg.pose.pose.orientation = tf2::toMsg(new_transform.getRotation().normalized());
-      
-      odom_msg.twist.twist.linear.x = (new_transform.getOrigin().x() - prev_transform.getOrigin().x()) /
+
+      odom_msg.twist.twist.linear.x =
+        (new_transform.getOrigin().x() - prev_transform.getOrigin().x()) /
         (dt);
-      odom_msg.twist.twist.linear.y = (new_transform.getOrigin().y() - prev_transform.getOrigin().y()) /
+      odom_msg.twist.twist.linear.y =
+        (new_transform.getOrigin().y() - prev_transform.getOrigin().y()) /
         (dt);
 
       auto new_transform_rotation = new_transform.getRotation().normalized();
       auto prev_transform_rotation = prev_transform.getRotation().normalized();
-      
+
       double new_yaw, new_pitch, new_roll;
       tf2::getEulerYPR(new_transform_rotation, new_yaw, new_pitch, new_roll);
 
@@ -131,11 +135,12 @@ private:
       odom_transform.transform.translation.x = new_transform.getOrigin().x();
       odom_transform.transform.translation.y = new_transform.getOrigin().y();
       odom_transform.transform.rotation = tf2::toMsg(new_transform.getRotation().normalized());
-      
+
       prev_transform = new_transform;
     } else {
       first_joints_cb = false;
-      mecanum_drive.setWheelOffsets(minimeclib::WheelPositions{msg.position.at(0), -msg.position.at(1), -msg.position.at(2), msg.position.at(3)});
+      mecanum_drive.setWheelOffsets(minimeclib::WheelPositions{msg.position.at(0),
+          -msg.position.at(1), -msg.position.at(2), msg.position.at(3)});
     }
     time_last_joint_data = time_now;
   }
@@ -145,16 +150,16 @@ private:
   std::string body_id;
   std::string odom_id;
   minimeclib::MecanumDrive mecanum_drive = minimeclib::MecanumDrive{};
-  
+
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr sub_joint_states_;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_odom_;
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
   nav_msgs::msg::Odometry odom_msg{};
   geometry_msgs::msg::TransformStamped odom_transform;
-  
+
   rclcpp::Time time_last_joint_data;
-  tf2::Transform prev_transform{tf2::Quaternion(0,0,0,1)};
-  
+  tf2::Transform prev_transform{tf2::Quaternion(0, 0, 0, 1)};
+
   rclcpp::TimerBase::SharedPtr timer_;
 
 };
