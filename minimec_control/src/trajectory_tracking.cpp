@@ -335,8 +335,17 @@ private:
         {dot(2, 0), dot(2, 1), dot(2, 2), rot_mat(2, 0), rot_mat(2, 1), rot_mat(2, 2)}
       };
 
-      arma::vec ff_term = adj * v_d + x_err * 2.0;
+      arma::vec ff_term = adj * v_d;
+      
+      arma::vec p_term = x_err * 2.0;
 
+      if (arma::norm(int_x_err + x_err*1.0/50.0) < 0.01){
+        int_x_err = int_x_err + x_err*1.0/50.0;
+      }
+      
+      arma::vec i_term = int_x_err * 1.0;
+
+      arma::vec control_output = ff_term + p_term + i_term;
       // double twist_z_world = ff_term[2];
       // double twist_x_world = ff_term[3];
       // double twist_y_world = ff_term[4];
@@ -373,9 +382,9 @@ private:
       // cmd_vel.linear.x = twist_x_body;
       // cmd_vel.linear.y = twist_y_body;
 
-      cmd_vel.angular.z = ff_term[2];
-      cmd_vel.linear.x = ff_term[3];
-      cmd_vel.linear.y = ff_term[4];
+      cmd_vel.angular.z = control_output[2];
+      cmd_vel.linear.x = control_output[3];
+      cmd_vel.linear.y = control_output[4];
 
       pub_cmd_vel_->publish(cmd_vel);
       counter++;
@@ -401,6 +410,8 @@ private:
   rclcpp::TimerBase::SharedPtr timer_;
 
   nav_msgs::msg::Path traj;
+
+  arma::vec int_x_err = arma::vec(6, arma::fill::zeros);
 
   bool received_path = false;
 
