@@ -26,7 +26,9 @@ The path generation can work as standalone, you can just spin up the node using 
 
 You can then call the service with this sample input:
 
-- To generate a spline path: `ros2 service call /path_generator/generate_plan minimec_msgs/srv/PlanRequest "{points: [{x: 0.0, y: 0.0},{x: 1.0, y: 0.0}, {x: 1.0, y: 1.0}, {x: 0.0, y: 1.0}, {x: 0.0, y: 2.0}, {x: 1.0, y: 2.0},{x: 1.0, y: 3.0}], frame_id: odom}"`
+- To generate a spline path with fixed orienation: `ros2 service call /generate_spline_plan minimec_msgs/srv/SplinePlanRequest "{points: [{x: 0.0, y: 0.0},{x: 1.0, y: 0.0}, {x: 1.0, y: 1.0}, {x: 2.0, y: 1.0}, {x: 2.0, y: 0.0}, {x: 3.0, y: 0.0},{x: 3.0, y: 1.0},{x: 4.0, y: 1.0}], heading_mode: fixed, frame_id: odom, heading_angle: 0.0, resolution: 0.0075}"`
+
+- To generate a spline path with point orientation: `ros2 service call /generate_spline_plan minimec_msgs/srv/SplinePlanRequest "{points: [{x: 0.0, y: 0.0},{x: 1.0, y: 0.0}, {x: 1.0, y: 1.0}, {x: 2.0, y: 1.0}, {x: 2.0, y: 0.0}, {x: 3.0, y: 0.0},{x: 3.0, y: 1.0},{x: 4.0, y: 1.0}], heading_mode: point, frame_id: odom, heading_point: {x: 2.0, y: -1.0}, resolution: 0.0075}"`
 
 - To generate a circular path: `ros2 service call /generate_circular_plan minimec_msgs/srv/CircularPlanRequest "{frame_id: odom, center: {x: 1.0, y: 0.0}, resolution: 0.005, radius: 1.0}"`
 
