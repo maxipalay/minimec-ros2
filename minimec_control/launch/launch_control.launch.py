@@ -39,6 +39,6 @@ def generate_launch_description():
             condition=IfCondition(PythonExpression(
                 ['\'', LaunchConfiguration('cmd_src'), '\'', '== \'path\''])),
             package='minimec_control',
-            executable='commands'
+            executable='trajectory_tracking'
             ),
     ])
