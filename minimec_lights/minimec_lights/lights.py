@@ -72,7 +72,7 @@ class Lights(Node):
             orientation = math.atan2(msg.linear.y, msg.linear.x)
             direction_index = self.angle_to_index(orientation)
             self.pixels[direction_index] = (255,255,255)
-            self.get_logger().error(f"direction index: {direction_index}")
+            #self.get_logger().error(f"direction index: {direction_index}")
             for i in range(1,25):
                 self.pixels[(direction_index+i)%(self.num_pixels-1)] = (int(255.0*(1.0-float(i)/24.0)),255,255)
                 self.pixels[(direction_index-i)%(self.num_pixels-1)] = (int(255.0*(1.0-float(i)/24.0)),255,255)
