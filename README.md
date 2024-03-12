@@ -23,15 +23,9 @@ Each package contains a README that goes into more detail.
 The `MecanumDrive` class is the core of this library.
 
 It provides the following functions:
-- FKin
-- IKin
-- setWheelOffsets
-
-## setup
-
-A `/setup` folder is included in this repository to help set up the robot easily and quickly. This is already done, but can serve as reference if there is a need to reflash the robot's storage.
-
-- Follow the steps in `/setup` to cofigure the robot.
+- FKin - Forward kinematics, maps wheel positions to transforms.
+- IKin - Inverse kinematics, maps input twist to wheel speeds.
+- setWheelOffsets - set initial encoder offsets
 
 ## building
 
@@ -61,3 +55,9 @@ Note: be mindful of the current robot location when you run the trajectory track
 On the computer:
 
 `ros2 launch minimec_bringup launch_command.launch.py` - this will launch rviz and the path generation node.
+
+## setup
+
+A `/setup` folder is included in this repository to help set up the robot easily and quickly. This is already done, but can serve as reference if there is a need to reflash the robot's storage.
+
+- Follow the steps in `/setup` to cofigure the robot.
