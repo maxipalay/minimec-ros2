@@ -50,7 +50,7 @@ On the robot:
 `ros2 launch minimec_bringup launch_minimec.launch.py cmd_src:=teleop` - this will launch the necessary nodes on the robot, and the robot just listens to the topic `/cmd_vel` and moves accordingly (no feedback). You can use the `teleop_twist_keyboard` node to drive the robot around.
 
 For launching the robot to track paths, you should run:
-`ros2 launch minimec_bringup launch_minimec.launch.py --ros-args cmd_src:=path` - this will additionally launch the `trajectory_tracking` node. Whenever a path is published, the tracking node will start following.
+`ros2 launch minimec_bringup launch_minimec.launch.py cmd_src:=path` - this will additionally launch the `trajectory_tracking` node. Whenever a path is published, the tracking node will start following.
 
 Note: be mindful of the current robot location when you run the trajectory tracking. If the robot is too far from the first point in the path, it will try to make the correction pretty quickly.
 
