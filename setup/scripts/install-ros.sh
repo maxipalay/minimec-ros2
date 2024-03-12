@@ -34,3 +34,5 @@ sudo pip3 install rpi_ws281x adafruit-circuitpython-neopixel # install libraries
 sudo usermod -aG gpio,spi msr # add the user to gpio, spi group so we can control neopixels from pin D10
 
 echo "source /opt/ros/iron/setup.bash" > /home/msr/.bashrc
+
+echo "export ROS_DOMAIN_ID=63" > /home/msr/.bashrc
