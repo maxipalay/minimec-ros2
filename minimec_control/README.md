@@ -35,3 +35,9 @@ You can then call the service with this sample input:
 
 This will display the points in rviz and the generated path.
 
+## Attribution
+
+This package makes use of the [TinySpline](https://github.com/msteinbeck/tinyspline) library for generating the spline from reference points.
+
+The kinematics and trajectory tracking are heavily based on [Lynch, Park - Modern Robotics](https://hades.mech.northwestern.edu/index.php/Modern_Robotics) book and the corresponding [Modern Robotics python library](https://github.com/NxRLab/ModernRobotics)
+
