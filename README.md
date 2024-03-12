@@ -6,7 +6,7 @@ Although this was purposely done for the Minimec, I tried to keep the software d
 
 ## ROS2 architecture
 
-[diagram]
+![image](https://github.com/maxipalay/minimec-ros2/assets/41023326/e0ddd9d2-b95f-4f51-9709-ff24437b381c)
 
 ### Packages
 - `minimec_bringup` - necessary launchfiles and configuration to get the minimec up and running quickly.
