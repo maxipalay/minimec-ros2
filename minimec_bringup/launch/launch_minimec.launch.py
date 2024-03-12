@@ -17,8 +17,8 @@ def generate_launch_description():
             choices=["teleop", "path"]),
         IncludeLaunchDescription(
             YAMLLaunchDescriptionSource(
-                [FindPackageShare("odrive_can"), '/launch',
-                    '/example_launch.yaml']
+                [FindPackageShare("minimec_bringup"), '/launch',
+                    '/launch_odrives.yaml']
             )
         ),
         IncludeLaunchDescription(
