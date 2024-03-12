@@ -4,10 +4,6 @@ The minimec is a custom mecanum wheel base made for development. This repository
 
 Although this was purposely done for the Minimec, I tried to keep the software decoupled from the hardware. A user could ideally swap out the `minimec_driver` package for one that implements communication with their own hardware and still have mostly everything working.
 
-## ROS2 architecture
-
-![image](https://github.com/maxipalay/minimec-ros2/assets/41023326/e0ddd9d2-b95f-4f51-9709-ff24437b381c)
-
 ### Packages
 - `minimec_bringup` - necessary launchfiles and configuration to get the minimec up and running quickly.
 - `minimec_control` - all things controls. Kinematics, odometry, path generation, trajectory tracking.
@@ -26,6 +22,12 @@ It provides the following functions:
 - FKin - Forward kinematics, maps wheel positions to transforms.
 - IKin - Inverse kinematics, maps input twist to wheel speeds.
 - setWheelOffsets - set initial encoder offsets
+
+## ROS2 architecture
+
+![image](https://github.com/maxipalay/minimec-ros2/assets/41023326/e0ddd9d2-b95f-4f51-9709-ff24437b381c)
+
+Four nodes form the [odrive_can](https://github.com/odriverobotics/odrive_can) package communicate the onboard computer with the Odrives. The `minimec_driver` node serves as a hardware abstraction node, publishing and subscribing to commands and encoder feedback. The `odometry` node calculates odometry based on the Odrives' feedback. The `trajectory_tracker` tracks a path using Feedforward + PI control, outputting velocity commands. The kinematics node translates velocity commands into speeds needed by the Odrives. The `minimec_lights` controls the LEDs based on `/cmd_vel`. The `path_generator` offers services that let the user generate paths, which will be tracked by the `trajectory_tracker`.
 
 ## building
 
