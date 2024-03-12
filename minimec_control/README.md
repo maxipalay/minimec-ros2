@@ -11,7 +11,6 @@ ROS2 package for controlling a mecanum wheel base. Made for controlling the Mini
 
 ## Configuration
 
-
 A file for configuring basic parameters is included in `config/params.yaml`. Parameters include:
 - wheel radius
 - wheelbase
