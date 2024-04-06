@@ -1,5 +1,7 @@
 # minimec-ros2
 
+![optimized-1](https://github.com/maxipalay/minimec-ros2/assets/41023326/a58071c8-9b75-4397-86ba-6677dbea68dc)
+
 The minimec is a custom mecanum wheel base made for development. This repository contains a simple C++ library and ROS2 packages that make the software running on the robot.
 
 Although this was purposely done for the Minimec, I tried to keep the software decoupled from the hardware. A user could ideally swap out the `minimec_driver` package for one that implements communication with their own hardware and still have mostly everything working.
