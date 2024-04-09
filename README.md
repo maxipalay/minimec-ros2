@@ -69,7 +69,7 @@ On the robot:
 
 On the computer:
 
-`ros2 launch minimec_bringup launch_command.launch.py` - this will launch rviz and the path generation node.
+`ros2 launch minimec_bringup launch_command.launch.py cmd_src:=path` - this will launch rviz and the path generation node.
 
 Note: be mindful of the current robot location when you run the trajectory tracking. If the robot is too far from the first point in the path, it will try to make the correction pretty quickly.
 
