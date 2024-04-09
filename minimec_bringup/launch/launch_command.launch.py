@@ -29,7 +29,20 @@ def generate_launch_description():
             package='teleop_twist_keyboard',
             executable='teleop_twist_keyboard',
             output='screen',
-            prefix='xterm -e'
+            prefix='xterm -e',
+            remappings=[('cmd_vel','cmd_vel_raw')]
+        ),
+        Node(
+            condition=IfCondition(PythonExpression(
+                ['\'', LaunchConfiguration('cmd_src'), '\'', '== \'teleop\''])),
+            package='teleop-smoother',
+            executable='smoother',
+            parameters=[{"linear_acceleration": 0.75,
+                         "angular_acceleration":1.0,
+                         "input_vel_topic":"cmd_vel_raw",
+                         "output_vel_topic":"cmd_vel",
+                         "loop_frequency":50.0}]
         )
+
         
     ])
