@@ -49,18 +49,31 @@ Compiling for the control computer:
 
 Make sure the robot and your computer are on the same network, and share the same `ROS_DOMAIN_ID`.
 
+### for teleop
+
 On the robot:
 
 `ros2 launch minimec_bringup launch_minimec.launch.py cmd_src:=teleop` - this will launch the necessary nodes on the robot, and the robot just listens to the topic `/cmd_vel` and moves accordingly (no feedback). You can use the `teleop_twist_keyboard` node to drive the robot around.
 
-For launching the robot to track paths, you should run:
-`ros2 launch minimec_bringup launch_minimec.launch.py cmd_src:=path` - this will additionally launch the `trajectory_tracking` node. Whenever a path is published, the tracking node will start following.
+On the control computer:
 
-Note: be mindful of the current robot location when you run the trajectory tracking. If the robot is too far from the first point in the path, it will try to make the correction pretty quickly.
+`ros2 launch minimec_bringup launch_command.launch.py cmd_src:=teleop` - this will launch the teleop node on a separate terminal.
+
+### for tracking trajectories
+
+For launching the robot to track paths.
+
+On the robot:
+
+`ros2 launch minimec_bringup launch_minimec.launch.py cmd_src:=path` - this will additionally launch the `trajectory_tracking` node. Whenever a path is published, the tracking node will start following.
 
 On the computer:
 
 `ros2 launch minimec_bringup launch_command.launch.py` - this will launch rviz and the path generation node.
+
+Note: be mindful of the current robot location when you run the trajectory tracking. If the robot is too far from the first point in the path, it will try to make the correction pretty quickly.
+
+Refer to the readme in the `minimec_control` package to see how to use this mode.
 
 ## setup
 
