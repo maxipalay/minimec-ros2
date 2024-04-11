@@ -1,0 +1,13 @@
+repositories:
+  minimec-ros:
+    type: git
+    url: git@github.com:maxipalay/msr-winter-project.git
+    version: main
+  odrive_can:
+    type: git
+    url: git@github.com:odriverobotics/odrive_can.git
+    version: main
+  teleop-smoother:
+    type: git
+    url: git@github.com:maxipalay/teleop-smoother.git
+    version: main
